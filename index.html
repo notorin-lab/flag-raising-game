@@ -271,7 +271,7 @@
   <main class="app">
     <h1>旗上げゲーム <span>🎌</span></h1>
     <p class="description">
-      5秒ごとに表示される指示に合わせて、赤旗と白旗を上げ下げするゲームです。<br />
+      3秒ごとに表示される指示に合わせて、赤旗と白旗を上げ下げするゲームです。<br />
       指示が切り替わる瞬間の旗の状態で成否を判定し、30回連続で成功するとクリアになります。途中で一度でも間違えるとゲームオーバーです。
     </p>
 
@@ -279,7 +279,7 @@
       <section class="panel">
         <h2>現在の指示 📢</h2>
         <div class="command" id="command">ゲーム開始を押してください</div>
-        <div class="countdown">残り <span id="countdown">5</span> 秒</div>
+        <div class="countdown">残り <span id="countdown">3</span> 秒</div>
         <div class="status">
           <div class="status-card">
             <strong>成功数</strong>
@@ -343,7 +343,7 @@
     ];
 
     let gameInterval = null;
-    let remainingTime = 5;
+    let remainingTime = 3;
     let successes = 0;
     let currentCommand = null;
     let status = "ready"; // ready | running | over | clear
@@ -419,12 +419,12 @@
 
     function startRound(feedback = "") {
       if (status !== "running") return;
-      remainingTime = 5;
+      remainingTime = 3;
       setCommand(pickCommand());
       if (feedback) {
         showMessage(feedback);
       } else {
-        showMessage("5秒以内に指示通りに旗を上げ下げしてください。");
+        showMessage("3秒以内に指示通りに旗を上げ下げしてください。");
       }
       updateDisplay();
       clearInterval(gameInterval);
@@ -444,7 +444,7 @@
       lastResultElement.textContent = "-";
       setFlag("redRaised", false);
       setFlag("whiteRaised", false);
-      showMessage("5秒間で指示通りに旗を動かしてください。30回成功でクリアです！");
+      showMessage("3秒間で指示通りに旗を動かしてください。30回成功でクリアです！");
       startRound();
     }
 
@@ -458,7 +458,7 @@
       status = "ready";
       successes = 0;
       currentCommand = null;
-      remainingTime = 5;
+      remainingTime = 3;
       lastResultElement.textContent = "-";
       commandElement.textContent = "ゲーム開始を押してください";
       showMessage("旗を上げたり下げたりして指示を待ちましょう。");
