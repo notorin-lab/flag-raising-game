@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>旗上げゲーム</title>
+  <style>
+    :root {
+      --red: #e63946;
+      --white: #f5f5f5;
+      --bg: #0b132b;
+      --panel: #1c2541;
+      --text: #f0f4f8;
+      --accent: #3a86ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Noto Sans JP", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(58, 134, 255, 0.2), transparent 35%),
+        radial-gradient(circle at 80% 0%, rgba(230, 57, 70, 0.15), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: min(960px, 100%);
+      background: rgba(28, 37, 65, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      padding: 24px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      letter-spacing: 0.04em;
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h1 span {
+      font-size: 24px;
+    }
+
+    .description {
+      margin: 0 0 20px;
+      line-height: 1.7;
+      color: rgba(240, 244, 248, 0.85);
+      font-size: 15px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .panel {
+      background: rgba(9, 12, 23, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 16px;
+      min-height: 180px;
+    }
+
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    .command {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      margin: 12px 0 6px;
+      color: #ffbe0b;
+    }
+
+    .countdown {
+      font-size: 18px;
+      color: rgba(240, 244, 248, 0.8);
+    }
+
+    .status {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .status-card {
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .status-card strong {
+      display: block;
+      font-size: 13px;
+      color: rgba(240, 244, 248, 0.75);
+      margin-bottom: 6px;
+      letter-spacing: 0.03em;
+    }
+
+    .status-value {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .flags {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 6px;
+    }
+
+    .flag {
+      width: 120px;
+      height: 140px;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .flag::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 45%);
+      pointer-events: none;
+    }
+
+    .flag .label {
+      font-size: 14px;
+      color: rgba(240, 244, 248, 0.8);
+      letter-spacing: 0.05em;
+    }
+
+    .flag .pole {
+      position: absolute;
+      bottom: 12px;
+      left: 18px;
+      width: 6px;
+      height: 110px;
+      background: linear-gradient(180deg, #d9d9d9, #a2a2a2);
+      border-radius: 3px;
+    }
+
+    .flag .cloth {
+      position: absolute;
+      left: 24px;
+      width: 80px;
+      height: 54px;
+      background: var(--white);
+      border-radius: 8px 8px 10px 8px;
+      box-shadow: 0 10px 18px rgba(0, 0, 0, 0.25);
+      transition: transform 0.35s ease, background 0.35s ease;
+      transform-origin: 6px 50%;
+    }
+
+    .flag.red .cloth {
+      background: var(--red);
+    }
+
+    .flag.raised .cloth {
+      transform: translateY(-54px) rotate(-3deg);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      font-size: 15px;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: transform 0.1s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(58, 134, 255, 0.15);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .primary {
+      background: linear-gradient(90deg, #3a86ff, #4cc9f0);
+      color: #0b132b;
+      font-weight: 700;
+      box-shadow: 0 10px 24px rgba(74, 144, 226, 0.35);
+      border: none;
+    }
+
+    .message {
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      min-height: 52px;
+      line-height: 1.6;
+      font-weight: 600;
+    }
+
+    .success-bar {
+      height: 10px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .success-bar span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #06d6a0, #8ef6e4);
+      width: 0;
+      transition: width 0.3s ease;
+    }
+
+    @media (max-width: 720px) {
+      .board {
+        grid-template-columns: 1fr;
+      }
+
+      .command {
+        font-size: 24px;
+      }
+
+      .flags {
+        gap: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>旗上げゲーム <span>🎌</span></h1>
+    <p class="description">
+      5秒ごとに表示される指示に合わせて、赤旗と白旗を上げ下げするゲームです。<br />
+      指示が切り替わる瞬間の旗の状態で成否を判定し、30回連続で成功するとクリアになります。途中で一度でも間違えるとゲームオーバーです。
+    </p>
+
+    <div class="board">
+      <section class="panel">
+        <h2>現在の指示 📢</h2>
+        <div class="command" id="command">ゲーム開始を押してください</div>
+        <div class="countdown">残り <span id="countdown">5</span> 秒</div>
+        <div class="status">
+          <div class="status-card">
+            <strong>成功数</strong>
+            <div class="status-value"><span id="success">0</span> / 30</div>
+            <div class="success-bar"><span id="successBar"></span></div>
+          </div>
+          <div class="status-card">
+            <strong>状態</strong>
+            <div class="status-value" id="gameState">待機中</div>
+          </div>
+          <div class="status-card">
+            <strong>前回の結果</strong>
+            <div class="status-value" id="lastResult">-</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>旗の操作 🎮</h2>
+        <div class="flags">
+          <div class="flag red" id="redFlag">
+            <div class="label">赤旗</div>
+            <div class="pole"></div>
+            <div class="cloth"></div>
+          </div>
+          <div class="flag" id="whiteFlag">
+            <div class="label">白旗</div>
+            <div class="pole"></div>
+            <div class="cloth"></div>
+          </div>
+        </div>
+        <div class="controls">
+          <button id="raiseRed">赤を上げる</button>
+          <button id="lowerRed">赤を下げる</button>
+          <button id="raiseWhite">白を上げる</button>
+          <button id="lowerWhite">白を下げる</button>
+          <button class="primary" id="start">ゲーム開始</button>
+          <button id="reset">リセット</button>
+        </div>
+        <div class="message" id="message">旗を上げたり下げたりして指示を待ちましょう。</div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const commandElement = document.getElementById("command");
+    const countdownElement = document.getElementById("countdown");
+    const successElement = document.getElementById("success");
+    const successBar = document.getElementById("successBar");
+    const gameStateElement = document.getElementById("gameState");
+    const lastResultElement = document.getElementById("lastResult");
+    const messageElement = document.getElementById("message");
+    const redFlag = document.getElementById("redFlag");
+    const whiteFlag = document.getElementById("whiteFlag");
+
+    const commands = [
+      { text: "赤あげて", check: (state) => state.redRaised },
+      { text: "赤さげて", check: (state) => !state.redRaised },
+      { text: "白あげて", check: (state) => state.whiteRaised },
+      { text: "白さげて", check: (state) => !state.whiteRaised },
+    ];
+
+    let gameInterval = null;
+    let remainingTime = 5;
+    let successes = 0;
+    let currentCommand = null;
+    let status = "ready"; // ready | running | over | clear
+
+    const flagState = {
+      redRaised: false,
+      whiteRaised: false,
+    };
+
+    function setFlag(flag, raised) {
+      flagState[flag] = raised;
+      const target = flag === "redRaised" ? redFlag : whiteFlag;
+      target.classList.toggle("raised", raised);
+    }
+
+    function pickCommand() {
+      if (!currentCommand) return commands[Math.floor(Math.random() * commands.length)];
+      let next;
+      do {
+        next = commands[Math.floor(Math.random() * commands.length)];
+      } while (next === currentCommand);
+      return next;
+    }
+
+    function updateDisplay() {
+      countdownElement.textContent = remainingTime;
+      successElement.textContent = successes;
+      successBar.style.width = `${(successes / 30) * 100}%`;
+      gameStateElement.textContent =
+        status === "ready"
+          ? "待機中"
+          : status === "running"
+          ? "進行中"
+          : status === "over"
+          ? "ゲームオーバー"
+          : "クリア";
+    }
+
+    function setCommand(command) {
+      currentCommand = command;
+      commandElement.textContent = command.text;
+      lastResultElement.textContent = successes === 0 ? "-" : lastResultElement.textContent;
+    }
+
+    function showMessage(text) {
+      messageElement.textContent = text;
+    }
+
+    function evaluate() {
+      if (!currentCommand) return;
+      const success = currentCommand.check(flagState);
+      if (success) {
+        successes += 1;
+        lastResultElement.textContent = "成功";
+        if (successes >= 30) {
+          status = "clear";
+          stopGame();
+          showMessage("おめでとうございます！30回連続成功でクリアしました。リセットしてもう一度遊べます。");
+          commandElement.textContent = "クリア！";
+          updateDisplay();
+          return;
+        }
+        startRound("成功しました。次の指示に備えましょう。");
+      } else {
+        status = "over";
+        lastResultElement.textContent = "失敗";
+        commandElement.textContent = "ゲームオーバー";
+        stopGame();
+        showMessage("指示と違う旗の状態でした。リセットして再挑戦してください。");
+      }
+      updateDisplay();
+    }
+
+    function startRound(feedback = "") {
+      if (status !== "running") return;
+      remainingTime = 5;
+      setCommand(pickCommand());
+      if (feedback) {
+        showMessage(feedback);
+      } else {
+        showMessage("5秒以内に指示通りに旗を上げ下げしてください。");
+      }
+      updateDisplay();
+      clearInterval(gameInterval);
+      gameInterval = setInterval(() => {
+        remainingTime -= 1;
+        if (remainingTime <= 0) {
+          evaluate();
+        } else {
+          updateDisplay();
+        }
+      }, 1000);
+    }
+
+    function startGame() {
+      status = "running";
+      successes = 0;
+      lastResultElement.textContent = "-";
+      setFlag("redRaised", false);
+      setFlag("whiteRaised", false);
+      showMessage("5秒間で指示通りに旗を動かしてください。30回成功でクリアです！");
+      startRound();
+    }
+
+    function stopGame() {
+      clearInterval(gameInterval);
+      gameInterval = null;
+      updateDisplay();
+    }
+
+    function resetGame() {
+      status = "ready";
+      successes = 0;
+      currentCommand = null;
+      remainingTime = 5;
+      lastResultElement.textContent = "-";
+      commandElement.textContent = "ゲーム開始を押してください";
+      showMessage("旗を上げたり下げたりして指示を待ちましょう。");
+      setFlag("redRaised", false);
+      setFlag("whiteRaised", false);
+      stopGame();
+    }
+
+    document.getElementById("raiseRed").addEventListener("click", () => {
+      setFlag("redRaised", true);
+    });
+
+    document.getElementById("lowerRed").addEventListener("click", () => {
+      setFlag("redRaised", false);
+    });
+
+    document.getElementById("raiseWhite").addEventListener("click", () => {
+      setFlag("whiteRaised", true);
+    });
+
+    document.getElementById("lowerWhite").addEventListener("click", () => {
+      setFlag("whiteRaised", false);
+    });
+
+    document.getElementById("start").addEventListener("click", () => {
+      if (status === "running") return;
+      startGame();
+    });
+
+    document.getElementById("reset").addEventListener("click", () => {
+      resetGame();
+    });
+
+    resetGame();
+  </script>
+</body>
+</html>
